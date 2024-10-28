@@ -1,4 +1,4 @@
-# README for Virat Kohli Performance Analyzer
+# DLS and Random Forest + XG Boost ML model for Kohli's performance in test cricket , ball-ball
 
 ## Overview
 The **Virat Kohli Performance Analyzer** is a sophisticated machine learning application built using Streamlit that predicts the remaining runs for Virat Kohli based on various match conditions during Test matches. By leveraging advanced statistical methods and machine learning models, this application provides valuable insights into Kohli's performance, helping users understand the nuances of his batting under different circumstances.
