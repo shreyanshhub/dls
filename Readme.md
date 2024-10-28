@@ -37,7 +37,7 @@ We extracted a comprehensive dataset containing **839 Test match ball-by-ball da
    \hat{Y} = \frac{1}{N} \sum_{i=1}^{N} T_i(X)
    \] $$
 
-   - $$ \( \hat{Y} \) $$ : Predicted output.
+   - $ \( \hat{Y} \) $ : Predicted output.
    - $$ \( N \) $$: Number of trees.
    - $$ \( T_i(X) \) $$: Prediction from the \(i^{th}\) tree.
 
