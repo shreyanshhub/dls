@@ -52,7 +52,41 @@ class KohliDLSModel:
         decay_rate = 0.02
         resources = max_resources * wicket_factor * np.exp(-decay_rate * (90 - overs_remaining))
         return resources
-
+        
+    def train_model(self, df):
+        """Train the DLS-like model"""
+        # Create target variable (runs scored from this point onwards)
+        df['runs_remaining'] = df.groupby('match_date')['runs_batter'].transform(
+            lambda x: x.iloc[::-1].cumsum().iloc[::-1]
+        )
+        
+        # Prepare features
+        features = self.prepare_features(df)
+        target = df['runs_remaining']
+        
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(
+            features, target, test_size=0.2, random_state=42
+        )
+        
+        # Train Random Forest model
+        self.rf_model = RandomForestRegressor(
+            n_estimators=200,
+            max_depth=10,
+            min_samples_split=5,
+            random_state=42
+        )
+        self.rf_model.fit(X_train, y_train)
+        
+        # Train XGBoost model
+        self.xgb_model = xgb.XGBRegressor(
+            n_estimators=200,
+            max_depth=8,
+            learning_rate=0.05,
+            random_state=42
+        )
+        self.xgb_model.fit(X_train, y_train)
+        
     def predict_score(self, situation_dict):
         """Predict score for given match situation"""
         df_situation = pd.DataFrame([situation_dict])
