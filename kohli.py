@@ -6,6 +6,11 @@ from sklearn.model_selection import train_test_split
 import xgboost as xgb
 import streamlit as st
 
+@st.cache_data
+def load_data():
+    df = pd.read_csv('kohli_batting_data.csv')
+    return df
+
 class KohliDLSModel:
     def __init__(self):
         self.rf_model = None
@@ -13,7 +18,6 @@ class KohliDLSModel:
         self.scaler = StandardScaler()
         
     def create_advanced_features(self, df):
-        """Create sophisticated features for the model"""
         df['rolling_avg_5'] = df.groupby('batter')['runs_batter'].rolling(5, min_periods=1).mean().reset_index(0, drop=True)
         df['rolling_strike_rate_10'] = (df.groupby('batter')['runs_batter'].rolling(10, min_periods=1).sum() / 10 * 100).reset_index(0, drop=True)
         df['dot_ball_pressure'] = df.groupby('batter')['runs_batter'].apply(lambda x: x.eq(0).rolling(10, min_periods=1).mean()).reset_index(0, drop=True)
@@ -84,30 +88,53 @@ class KohliDLSModel:
         df['pressure_impact'] = df['runs_impact'] * df['resources_remaining'] / 100
         return df
 
+@st.cache_data
 def main():
-    df = pd.read_csv('kohli_batting_data.csv')
+    df = load_data()
     model = KohliDLSModel()
     df_processed = model.create_advanced_features(df)
     model.train_model(df_processed)
     df_with_impact = model.calculate_match_impact(df_processed)
     return model, df_with_impact
 
-if __name__ == "__main__":
-    model, results = main()
+model, results = main()
 
-    # Streamlit Interface
-    st.title("Virat Kohli Performance Analyzer")
+# Streamlit Interface
+st.title("Virat Kohli Performance Analyzer")
 
-    st.sidebar.header("Options")
-    match_date = st.sidebar.selectbox("Select Match Date", results['match_date'].unique())
-    filtered_data = results[results['match_date'] == match_date]
+st.sidebar.header("Filter Options")
+match_date = st.sidebar.selectbox("Select Match Date", results['match_date'].unique())
+venue = st.sidebar.selectbox("Select Venue", results['venue'].unique())
+opposition = st.sidebar.selectbox("Select Opposing Team", results['bowling_team'].unique())
+over = st.sidebar.slider("Over", min_value=int(results['over'].min()), max_value=int(results['over'].max()), step=1)
 
-    st.subheader(f"Performance on {match_date}")
-    st.write(filtered_data[['batter', 'venue', 'runs_batter', 'runs_remaining', 'expected_runs', 'runs_impact', 'pressure_impact']])
+filtered_data = results[(results['match_date'] == match_date) & (results['venue'] == venue) & (results['bowling_team'] == opposition) & (results['over'] == over)]
 
-    st.subheader("Impact Analysis")
-    st.line_chart(filtered_data[['runs_impact', 'pressure_impact']])
-    
-    if st.sidebar.button("Calculate Par Score"):
-        par_score = model.calculate_par_score(filtered_data)
-        st.sidebar.write(f"Predicted Par Score: {par_score[0]}")
+st.subheader(f"Performance on {match_date} at {venue} against {opposition}")
+st.write(filtered_data[['batter', 'runs_batter', 'runs_remaining', 'expected_runs', 'runs_impact', 'pressure_impact']])
+
+st.markdown("### Variable Explanation")
+st.markdown("""
+- **`runs_batter`**: Runs scored by Kohli.
+- **`runs_remaining`**: Projected remaining runs needed.
+- **`expected_runs`**: Predicted total runs based on current conditions.
+- **`runs_impact`**: Kohli's runs compared to expectations under given circumstances.
+- **`pressure_impact`**: Additional pressure from remaining resources and runs impact.
+
+### Model Explanation
+Using **Random Forest** and **XGBoost** (an ensemble of decision trees), this model predicts **expected runs** and **match impact** using advanced features, capturing batting trends and the resources left. XGBoost metrics (`max_depth`, `learning_rate`) optimize balance between model complexity and accuracy.
+
+### Graphs and Insights
+- **Impact Over Time**: View how runs and pressure impact shift over overs.
+- **Rolling Strike Rate**: Kohli’s rolling strike rate per 5 overs.
+""")
+
+st.subheader("Graphical Analysis")
+st.line_chart(filtered_data[['runs_impact', 'pressure_impact']])
+st.line_chart(filtered_data[['rolling_avg_5', 'rolling_strike_rate_10']])
+
+if st.sidebar.button("Calculate Par Score"):
+    par_score = model.calculate_par_score(filtered_data)
+    st.sidebar.write(f"Predicted Par Score: {par_score[0]}")
+
+
