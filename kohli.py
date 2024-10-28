@@ -58,9 +58,7 @@ class KohliDLSModel:
         feature_cols = [
             'balls_remaining', 'wickets_in_hand', 'resources_remaining',
             'innings_progress', 'rolling_avg_5', 'rolling_strike_rate_10',
-            'dot_ball_pressure', 'avg_runs_conceded', 'wicket_rate'
-        ]
-        
+            'dot_ball_pressure']
         return self.scaler.transform(df[feature_cols])
 
     
