@@ -53,6 +53,17 @@ class KohliDLSModel:
         resources = max_resources * wicket_factor * np.exp(-decay_rate * (90 - overs_remaining))
         return resources
         
+    def prepare_features(self, df):
+        """Prepare features for model input"""
+        feature_cols = [
+            'balls_remaining', 'wickets_in_hand', 'resources_remaining',
+            'innings_progress', 'rolling_avg_5', 'rolling_strike_rate_10',
+            'dot_ball_pressure', 'avg_runs_conceded', 'wicket_rate'
+        ]
+        
+        return self.scaler.transform(df[feature_cols])
+
+    
     def train_model(self, df):
         """Train the DLS-like model"""
         # Create target variable (runs scored from this point onwards)
