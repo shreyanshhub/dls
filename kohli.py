@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 import xgboost as xgb
 import streamlit as st
 
-@st.cache_data
+
 def load_data():
     df = pd.read_csv('kohli_batting_data.csv')
     return df
