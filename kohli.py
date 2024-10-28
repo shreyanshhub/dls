@@ -126,7 +126,7 @@ st.write(filtered_data[['batter', 'runs_batter', 'runs_remaining', 'expected_run
 st.markdown("### Column Descriptions")
 st.write("""
 - **Batter**: Name of the batter.
-- **Runs Scored**: Total runs scored by the batter in the match.
+- **Runs Scored**: runs scored by the batter in the match till now
 - **Runs Remaining**: Remaining runs as per DLS , refer down in python file kohli.py on Github
 - **Expected Runs**: Predicted runs based on current match situation.
 - **Runs Impact**: Difference between actual runs scored and expected runs.
