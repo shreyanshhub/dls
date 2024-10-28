@@ -149,7 +149,7 @@ The **DLS** (Duckworth-Lewis-Stern) formula adapts to predict remaining runs bas
   - Prediction = (1/n) * ∑(tree_predictions)
 
 #### XGBoost
-- A gradient boosting framework that optimizes model performance.
+- A gradient boosting Machine Learning framework that optimizes model performance.
 - Incorporates regularization to prevent overfitting.
 - **Key parameters**:
   - **n_estimators**: Number of trees.
