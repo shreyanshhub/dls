@@ -82,13 +82,16 @@ class KohliDLSModel:
             features, target, test_size=0.2, random_state=42
         )
 
+        self.scaler.fit(X_train)  # Fit the scaler here
+        features = self.scaler.transform(X_train)  # Transform the training features
+
         self.rf_model = RandomForestRegressor(
             n_estimators=200,
             max_depth=10,
             min_samples_split=5,
             random_state=42
         )
-        self.rf_model.fit(X_train, y_train)
+        self.rf_model.fit(features, y_train)
 
         self.xgb_model = xgb.XGBRegressor(
             n_estimators=200,
@@ -96,8 +99,8 @@ class KohliDLSModel:
             learning_rate=0.05,
             random_state=42
         )
-        self.xgb_model.fit(X_train, y_train)
-
+        self.xgb_model.fit(features, y_train)
+    
     def calculate_par_score(self, df_situation):
         """Calculate par score for given match situation"""
         if self.rf_model is None or self.xgb_model is None:
