@@ -1,14 +1,19 @@
 import pandas as pd
 import numpy as np
+import streamlit as st
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
-import streamlit as st
 
+# Cache data and model loading to speed up performance
+@st.cache_data
 def load_data():
-    df = pd.read_csv('kohli_batting_data.csv')
-    return df
+    return pd.read_csv('kohli_batting_data.csv')
+
+@st.cache_resource
+def initialize_model():
+    return KohliDLSModel()
 
 class KohliDLSModel:
     def __init__(self):
@@ -22,7 +27,7 @@ class KohliDLSModel:
         df['dot_ball_pressure'] = df.groupby('batter')['runs_batter'].apply(lambda x: x.eq(0).rolling(10, min_periods=1).mean()).reset_index(0, drop=True)
         df['innings_progress'] = 1 - (df['balls_remaining'] / (90 * 6))
         df['resources_remaining'] = self.calculate_resources(df['balls_remaining'], df['wickets_in_hand'])
-
+        
         bowler_stats = df.groupby('bowler').agg({
             'runs_batter': ['mean', 'std'],
             'wicket': 'mean'
@@ -41,7 +46,7 @@ class KohliDLSModel:
             'wicket': 'mean'
         }).reset_index()
         df = df.merge(team_stats, on='bowling_team', how='left', suffixes=('', '_team_avg'))
-        
+
         return df
 
     def calculate_resources(self, balls_remaining, wickets):
@@ -62,7 +67,10 @@ class KohliDLSModel:
 
     def train_model(self, df):
         df['runs_remaining'] = df.groupby('match_date')['runs_batter'].transform(lambda x: x.iloc[::-1].cumsum().iloc[::-1])
-        features = df[['balls_remaining', 'wickets_in_hand', 'resources_remaining', 'innings_progress', 'rolling_avg_5', 'rolling_strike_rate_10', 'dot_ball_pressure', 'avg_runs_conceded', 'wicket_rate']]
+        features = df[['balls_remaining', 'wickets_in_hand', 'resources_remaining', 'innings_progress', 
+                       'rolling_avg_5', 'rolling_strike_rate_10', 'dot_ball_pressure', 
+                       'avg_runs_conceded', 'wicket_rate']]
+        
         self.scaler.fit(features)
         features_scaled = self.scaler.transform(features)
         target = df['runs_remaining']
@@ -89,7 +97,7 @@ class KohliDLSModel:
 
 def main():
     df = load_data()
-    model = KohliDLSModel()
+    model = initialize_model()
     df_processed = model.create_advanced_features(df)
     model.train_model(df_processed)
     df_with_impact = model.calculate_match_impact(df_processed)
@@ -100,6 +108,7 @@ model, results = main()
 # Streamlit Interface
 st.title("Virat Kohli Performance Analyzer")
 
+# Sidebar for filtering
 st.sidebar.header("Filter Options")
 venue = st.sidebar.selectbox("Select Venue", results['venue'].unique())
 filtered_data = results[results['venue'] == venue]
@@ -113,38 +122,97 @@ filtered_data = filtered_data[filtered_data['match_date'] == match_date]
 st.subheader(f"Performance Summary for {match_date} at {venue} against {opposition}")
 st.write(filtered_data[['batter', 'runs_batter', 'runs_remaining', 'expected_runs', 'runs_impact', 'pressure_impact']])
 
-# Explanation Section
+# Explanation of columns
+st.markdown("### Column Descriptions")
+st.write("""
+- **Batter**: Name of the batter.
+- **Runs Scored**: Total runs scored by the batter in the match.
+- **Runs Remaining**: Remaining runs required to win the match.
+- **Expected Runs**: Predicted runs based on current match situation.
+- **Runs Impact**: Difference between actual runs scored and expected runs.
+- **Pressure Impact**: Indicates how runs scored relate to remaining resources in the match.
+""")
+
+# Explanation Section for Models
 st.markdown("### Model Explanation")
 st.markdown("""
-- **DLS Model Mathematics**: The **DLS** (Duckworth-Lewis-Stern) formula was adapted to predict remaining runs using remaining balls, wickets, and adjusted resource ratios.
-  - Resources are calculated based on balls remaining and wickets in hand, then used to estimate match scenarios.
-- **XGBoost Model**:
-  - `n_estimators`: Number of trees in the model.
-  - `max_depth`: Limits tree depth to avoid overfitting.
-  - `learning_rate`: Controls step size during learning.
-- **Pipeline**:
-  - Data preprocessed with `StandardScaler` for feature scaling.
-  - Models are trained on split data, and predictions are combined using a weighted average.
+#### DLS Model Mathematics
+The **DLS** (Duckworth-Lewis-Stern) formula adapts to predict remaining runs based on:
+- Remaining balls
+- Wickets in hand
+- Adjusted resource ratios
+
+#### Random Forest
+- An ensemble method using multiple decision trees.
+- Each tree predicts an outcome, and the final prediction is the average (for regression).
+- **Mathematical representation**:
+  - Prediction = (1/n) * ∑(tree_predictions)
+
+#### XGBoost
+- A gradient boosting framework that optimizes model performance.
+- Incorporates regularization to prevent overfitting.
+- **Key parameters**:
+  - **n_estimators**: Number of trees.
+  - **max_depth**: Limits tree depth.
+  - **learning_rate**: Step size for model updates.
+- **Mathematical representation**:
+  - Prediction = ∑(learning_rate * tree_prediction)
+
+### Pipeline
+- Data preprocessed using `StandardScaler`.
+- Models trained on split data.
+- Predictions are combined using weighted average.
 """)
 
 # Graphical Analysis
 st.subheader("Graphical Analysis")
-
+st.markdown("### Run Analysis Over Time")
 st.line_chart(data=filtered_data[['runs_impact', 'pressure_impact']], use_container_width=True)
-st.line_chart(data=filtered_data[['rolling_avg_5']], y="rolling_avg_5", use_container_width=True)
-st.line_chart(data=filtered_data[['innings_progress']], y="innings_progress", use_container_width=True)
-st.line_chart(data=filtered_data[['runs_remaining']], y="runs_remaining", use_container_width=True)
-st.line_chart(data=filtered_data[['strike_rate']], y="strike_rate", use_container_width=True)
+st.line_chart(data=filtered_data[['rolling_avg_5']], use_container_width=True)
+st.line_chart(data=filtered_data[['innings_progress']], use_container_width=True)
+st.line_chart(data=filtered_data[['runs_remaining']], use_container_width=True)
+st.line_chart(data=filtered_data[['strike_rate']], use_container_width=True)
 
+# Label axes for clarity
 st.write("""
 ### Y-Axis:
-- `runs_impact` & `pressure_impact`: Measures the deviation from the expected score.
-- `rolling_avg_5`: Five-overs rolling average of runs scored.
-- `innings_progress`: Shows the match’s progress as a proportion.
+- `runs_impact` & `pressure_impact`: Deviation from expected score.
+- `rolling_avg_5`: Five-over rolling average of runs scored.
+- `innings_progress`: Match's progress proportion.
 - `runs_remaining`: Cumulative runs remaining.
-- `strike_rate`: Strike rate of the batter.
+- `strike_rate`: Batting strike rate.
 
 ### X-Axis:
-The x-axis across graphs represents the ball-by-ball sequence of events throughout the match.
+The x-axis represents the ball-by-ball sequence of events throughout the match.
 """)
+
+# Live Prediction Tab
+st.header("Live Prediction")
+st.markdown("### Input Match Parameters for Prediction")
+
+# Live input fields
+balls_remaining = st.number_input("Balls Remaining", min_value=0, max_value=600, value=50)
+wickets_in_hand = st.number_input("Wickets in Hand", min_value=0, max_value=10, value=5)
+innings_progress = st.number_input("Innings Progress (as a fraction)", min_value=0.0, max_value=1.0, value=0.5)
+
+# Dynamic Prediction based on user input
+if st.button("Predict Remaining Runs"):
+    input_data = pd.DataFrame({
+        'balls_remaining': [balls_remaining],
+        'wickets_in_hand': [wickets_in_hand],
+        'innings_progress': [innings_progress]
+    })
+
+    # Make predictions
+    prediction = model.calculate_par_score(input_data)
+    st.success(f"Predicted Remaining Runs: {prediction[0]:.2f}")
+
+# Add cache for improved speed
+@st.cache_data
+def cache_live_data():
+    # Cache any heavy operations or data here
+    pass
+
+if __name__ == '__main__':
+    main()
 
