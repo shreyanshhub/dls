@@ -127,7 +127,7 @@ st.markdown("### Column Descriptions")
 st.write("""
 - **Batter**: Name of the batter.
 - **Runs Scored**: Total runs scored by the batter in the match.
-- **Runs Remaining**: Remaining runs required to win the match.
+- **Runs Remaining**: Remaining runs as per DLS , refer down in python file kohli.py on Github
 - **Expected Runs**: Predicted runs based on current match situation.
 - **Runs Impact**: Difference between actual runs scored and expected runs.
 - **Pressure Impact**: Indicates how runs scored relate to remaining resources in the match.
