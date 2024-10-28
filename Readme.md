@@ -14,47 +14,47 @@ We extracted a comprehensive dataset containing **839 Test match ball-by-ball da
    The DLS method is a complex statistical approach used in cricket to recalibrate the target score when rain or other interruptions affect a match. The methodology focuses on resource allocation based on the number of overs and wickets remaining.
 
    The primary equation used in DLS can be simplified as follows:
-
-   \[
+   
+   $$ \[
    R = \text{Resources Left} \times \text{Par Score}
-   \]
+   \] $$
 
    - **Resources Left**: Calculated based on the current overs remaining and wickets in hand.
    - **Par Score**: The expected score at any given point in the match based on historical data.
 
    The formula for calculating resources can be derived as follows:
 
-   \[
+   $$ \[
    \text{Resources} = 100 - \left( \frac{Wickets \, Lost}{Total \, Wickets} \times 100 \right) - \left( \frac{Overs \, Bowled}{Total \, Overs} \times 100 \right)
-   \]
+   \] $$
 
 2. **Random Forest Regressor**:
    The Random Forest model is an ensemble learning technique that constructs multiple decision trees during training and outputs the mean prediction of the individual trees. 
 
    The prediction can be expressed mathematically as follows:
 
-   \[
+   $$ \[
    \hat{Y} = \frac{1}{N} \sum_{i=1}^{N} T_i(X)
-   \]
+   \] $$
 
-   - \( \hat{Y} \): Predicted output.
-   - \( N \): Number of trees.
-   - \( T_i(X) \): Prediction from the \(i^{th}\) tree.
+   - $$ \( \hat{Y} \) $$ : Predicted output.
+   - $$ \( N \) $$: Number of trees.
+   - $$ \( T_i(X) \) $$: Prediction from the \(i^{th}\) tree.
 
    The feature importance can also be derived using the mean decrease impurity (MDI):
 
-   \[
+   $$ \[
    \text{Importance}(j) = \sum_{t \in \mathcal{T}_j} \left( \frac{N_t}{N} \times \Delta \text{impurity}_t \right)
-   \]
+   \] $$
 
 3. **XGBoost Regressor**:
    XGBoost is another powerful machine learning algorithm that employs gradient boosting. It aims to minimize the loss function \(L\) by combining weak learners. The optimization can be mathematically framed as follows:
 
-   \[
+   $$ \[
    L = \sum_{i=1}^{N} l(y_i, \hat{y}_i) + \Omega(f)
-   \]
+   \] $$
 
-   - \( y_i \): Actual target value.
+   - $$ \( y_i \) $$: Actual target value.
    - \( \hat{y}_i \): Predicted value.
    - \( \Omega(f) \): Regularization term to control complexity, given by:
 
