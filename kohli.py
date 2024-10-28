@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 import xgboost as xgb
 import streamlit as st
 
-
 def load_data():
     df = pd.read_csv('kohli_batting_data.csv')
     return df
@@ -16,7 +15,7 @@ class KohliDLSModel:
         self.rf_model = None
         self.xgb_model = None
         self.scaler = StandardScaler()
-        
+
     def create_advanced_features(self, df):
         df['rolling_avg_5'] = df.groupby('batter')['runs_batter'].rolling(5, min_periods=1).mean().reset_index(0, drop=True)
         df['rolling_strike_rate_10'] = (df.groupby('batter')['runs_batter'].rolling(10, min_periods=1).sum() / 10 * 100).reset_index(0, drop=True)
@@ -88,7 +87,6 @@ class KohliDLSModel:
         df['pressure_impact'] = df['runs_impact'] * df['resources_remaining'] / 100
         return df
 
-@st.cache_data
 def main():
     df = load_data()
     model = KohliDLSModel()
@@ -103,38 +101,50 @@ model, results = main()
 st.title("Virat Kohli Performance Analyzer")
 
 st.sidebar.header("Filter Options")
-match_date = st.sidebar.selectbox("Select Match Date", results['match_date'].unique())
 venue = st.sidebar.selectbox("Select Venue", results['venue'].unique())
-opposition = st.sidebar.selectbox("Select Opposing Team", results['bowling_team'].unique())
-over = st.sidebar.slider("Over", min_value=int(results['over'].min()), max_value=int(results['over'].max()), step=1)
+filtered_data = results[results['venue'] == venue]
 
-filtered_data = results[(results['match_date'] == match_date) & (results['venue'] == venue) & (results['bowling_team'] == opposition) & (results['over'] == over)]
+opposition = st.sidebar.selectbox("Select Opposing Team", filtered_data['bowling_team'].unique())
+filtered_data = filtered_data[filtered_data['bowling_team'] == opposition]
 
-st.subheader(f"Performance on {match_date} at {venue} against {opposition}")
+match_date = st.sidebar.selectbox("Select Match Date", filtered_data['match_date'].unique())
+filtered_data = filtered_data[filtered_data['match_date'] == match_date]
+
+st.subheader(f"Performance Summary for {match_date} at {venue} against {opposition}")
 st.write(filtered_data[['batter', 'runs_batter', 'runs_remaining', 'expected_runs', 'runs_impact', 'pressure_impact']])
 
-st.markdown("### Variable Explanation")
+# Explanation Section
+st.markdown("### Model Explanation")
 st.markdown("""
-- **`runs_batter`**: Runs scored by Kohli.
-- **`runs_remaining`**: Projected remaining runs needed.
-- **`expected_runs`**: Predicted total runs based on current conditions.
-- **`runs_impact`**: Kohli's runs compared to expectations under given circumstances.
-- **`pressure_impact`**: Additional pressure from remaining resources and runs impact.
-
-### Model Explanation
-Using **Random Forest** and **XGBoost** (an ensemble of decision trees), this model predicts **expected runs** and **match impact** using advanced features, capturing batting trends and the resources left. XGBoost metrics (`max_depth`, `learning_rate`) optimize balance between model complexity and accuracy.
-
-### Graphs and Insights
-- **Impact Over Time**: View how runs and pressure impact shift over overs.
-- **Rolling Strike Rate**: Kohli’s rolling strike rate per 5 overs.
+- **DLS Model Mathematics**: The **DLS** (Duckworth-Lewis-Stern) formula was adapted to predict remaining runs using remaining balls, wickets, and adjusted resource ratios.
+  - Resources are calculated based on balls remaining and wickets in hand, then used to estimate match scenarios.
+- **XGBoost Model**:
+  - `n_estimators`: Number of trees in the model.
+  - `max_depth`: Limits tree depth to avoid overfitting.
+  - `learning_rate`: Controls step size during learning.
+- **Pipeline**:
+  - Data preprocessed with `StandardScaler` for feature scaling.
+  - Models are trained on split data, and predictions are combined using a weighted average.
 """)
 
+# Graphical Analysis
 st.subheader("Graphical Analysis")
-st.line_chart(filtered_data[['runs_impact', 'pressure_impact']])
-st.line_chart(filtered_data[['rolling_avg_5', 'rolling_strike_rate_10']])
 
-if st.sidebar.button("Calculate Par Score"):
-    par_score = model.calculate_par_score(filtered_data)
-    st.sidebar.write(f"Predicted Par Score: {par_score[0]}")
+st.line_chart(data=filtered_data[['runs_impact', 'pressure_impact']], use_container_width=True)
+st.line_chart(data=filtered_data[['rolling_avg_5']], y="rolling_avg_5", use_container_width=True)
+st.line_chart(data=filtered_data[['innings_progress']], y="innings_progress", use_container_width=True)
+st.line_chart(data=filtered_data[['runs_remaining']], y="runs_remaining", use_container_width=True)
+st.line_chart(data=filtered_data[['strike_rate']], y="strike_rate", use_container_width=True)
 
+st.write("""
+### Y-Axis:
+- `runs_impact` & `pressure_impact`: Measures the deviation from the expected score.
+- `rolling_avg_5`: Five-overs rolling average of runs scored.
+- `innings_progress`: Shows the match’s progress as a proportion.
+- `runs_remaining`: Cumulative runs remaining.
+- `strike_rate`: Strike rate of the batter.
+
+### X-Axis:
+The x-axis across graphs represents the ball-by-ball sequence of events throughout the match.
+""")
 
