@@ -141,12 +141,44 @@ The **DLS** (Duckworth-Lewis-Stern) formula adapts to predict remaining runs bas
 - Remaining balls
 - Wickets in hand
 - Adjusted resource ratios
+The DLS method is a complex statistical approach used in cricket to recalibrate the target score when rain or other interruptions affect a match. The methodology focuses on resource allocation based on the number of overs and wickets remaining.
+
+The primary equation used in DLS can be simplified as follows:
+
+$$
+R = \\text{Resources Left} \\times \\text{Par Score}
+$$
+
+Where:
+- **Resources Left**: Calculated based on the current overs remaining and wickets in hand.
+- **Par Score**: The expected score at any given point in the match based on historical data.
+
+The formula for calculating resources can be derived as follows:
+
+$$
+\\text{Resources} = 100 - \\left( \\frac{Wickets \\, Lost}{Total \\, Wickets} \\times 100 \\right) - \\left( \\frac{Overs \\, Bowled}{Total \\, Overs} \\times 100 \\right)
+$$
+
 
 #### Random Forest
 - An ensemble method using multiple decision trees.
 - Each tree predicts an outcome, and the final prediction is the average (for regression).
-- **Mathematical representation**:
-  - Prediction = (1/n) * ∑(tree_predictions)
+The prediction can be expressed mathematically as follows:
+
+$$
+\\hat{Y} = \\frac{1}{N} \\sum_{i=1}^{N} T_i(X)
+$$
+
+Where:
+- \( \\hat{Y} \): Predicted output.
+- \( N \): Number of trees.
+- \( T_i(X) \): Prediction from the \(i^{th}\\) tree.
+
+The feature importance can also be derived using the mean decrease impurity (MDI):
+
+$$
+\\text{Importance}(j) = \\sum_{t \\in \\mathcal{T}_j} \\left( \\frac{N_t}{N} \\times \\Delta \\text{impurity}_t \\right)
+$$
 
 #### XGBoost
 - A gradient boosting Machine Learning framework that optimizes model performance.
@@ -155,8 +187,22 @@ The **DLS** (Duckworth-Lewis-Stern) formula adapts to predict remaining runs bas
   - **n_estimators**: Number of trees.
   - **max_depth**: Limits tree depth.
   - **learning_rate**: Step size for model updates.
-- **Mathematical representation**:
-  - Prediction = ∑(learning_rate * tree_prediction)
+$$
+L = \\sum_{i=1}^{N} l(y_i, \\hat{y}_i) + \\Omega(f)
+$$
+
+Where:
+- \( y_i \): Actual target value.
+- \( \\hat{y}_i \): Predicted value.
+- \( \\Omega(f) \): Regularization term to control complexity, given by:
+
+$$
+\\Omega(f) = \\gamma T + \\frac{1}{2} \\lambda \\sum_{j=1}^{T} w_j^2
+$$
+
+Where:
+- \(T\) = number of leaves in the tree,
+- \(w_j\) = weight of the \(j^{th}\\) leaf.
 
 ### Pipeline
 - Data preprocessed using `StandardScaler`.
