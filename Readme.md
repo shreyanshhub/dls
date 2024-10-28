@@ -37,7 +37,7 @@ We extracted a comprehensive dataset containing **839 Test match ball-by-ball da
    \hat{Y} = \frac{1}{N} \sum_{i=1}^{N} T_i(X)
    \] $$
 
-   - $ \( \hat{Y} \) $ : Predicted output.
+   - $$ \( \hat{Y} \) $$ : Predicted output.
    - $$ \( N \) $$: Number of trees.
    - $$ \( T_i(X) \) $$: Prediction from the \(i^{th}\) tree.
 
@@ -55,35 +55,35 @@ We extracted a comprehensive dataset containing **839 Test match ball-by-ball da
    \] $$
 
    - $$ \( y_i \) $$: Actual target value.
-   - \( \hat{y}_i \): Predicted value.
-   - \( \Omega(f) \): Regularization term to control complexity, given by:
+   - $$ \( \hat{y}_i \) $$: Predicted value.
+   - $$ \( \Omega(f) \) $$: Regularization term to control complexity, given by:
 
-   \[
+   $$ \[
    \Omega(f) = \gamma T + \frac{1}{2} \lambda \sum_{j=1}^{T} w_j^2
-   \]
+   \] $$
 
    Where:
-   - \(T\) = number of leaves in the tree,
-   - \(w_j\) = weight of the \(j^{th}\) leaf.
+   - $$ \(T\) $$ = number of leaves in the tree,
+   - $$ \(w_j\) $$ = weight of the \(j^{th}\) leaf.
 
 ### Feature Engineering
 To enhance the predictive capability of our models, we engineered several advanced features from the raw dataset:
 
 - **Rolling Averages**: 
-   \[
+   $$ \[
    \text{rolling\_avg}(n) = \frac{1}{n} \sum_{t=1}^{n} R_t
-   \]
-   Where \(R_t\) is the runs scored in the last \(n\) balls.
+   \] $$
+   Where $$ \(R_t\) $$ is the runs scored in the last \(n\) balls.
 
 - **Dot Ball Pressure**:
-   \[
+   $$ \[
    \text{dot\_ball\_pressure} = \frac{\text{Number of Dot Balls in Last 10 Balls}}{10}
-   \]
+   \] $$
 
 - **Innings Progress**:
-   \[
+   $$ \[
    \text{innings\_progress} = 1 - \frac{\text{balls remaining}}{90 \times 6}
-   \]
+   \] $$
 
 ### Machine Learning Implementation
 The implemented machine learning framework consists of two main models:
@@ -92,9 +92,9 @@ The implemented machine learning framework consists of two main models:
 
 The final predicted score is a weighted combination of the predictions from both models:
 
-\[
+$$ \[
 \text{Final Prediction} = 0.4 \times \text{RF Prediction} + 0.6 \times \text{XGBoost Prediction}
-\]
+\] $$
 
 ## Conclusion
 The **Virat Kohli Performance Analyzer** harnesses the power of machine learning and sophisticated statistical methods to provide predictions about Kohli's performance in real-time during Test matches. By utilizing a robust dataset and advanced feature engineering, our model can accurately assess various match conditions, offering insights that are valuable to cricket analysts, fans, and teams alike.
