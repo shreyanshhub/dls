@@ -186,33 +186,6 @@ st.write("""
 The x-axis represents the ball-by-ball sequence of events throughout the match.
 """)
 
-# Live Prediction Tab
-st.header("Live Prediction")
-st.markdown("### Input Match Parameters for Prediction")
-
-# Live input fields
-balls_remaining = st.number_input("Balls Remaining", min_value=0, max_value=600, value=50)
-wickets_in_hand = st.number_input("Wickets in Hand", min_value=0, max_value=10, value=5)
-innings_progress = st.number_input("Innings Progress (as a fraction)", min_value=0.0, max_value=1.0, value=0.5)
-
-# Dynamic Prediction based on user input
-if st.button("Predict Remaining Runs"):
-    input_data = pd.DataFrame({
-        'balls_remaining': [balls_remaining],
-        'wickets_in_hand': [wickets_in_hand],
-        'innings_progress': [innings_progress]
-    })
-
-    # Make predictions
-    prediction = model.calculate_par_score(input_data)
-    st.success(f"Predicted Remaining Runs: {prediction[0]:.2f}")
-
-# Add cache for improved speed
-@st.cache_data
-def cache_live_data():
-    # Cache any heavy operations or data here
-    pass
-
 if __name__ == '__main__':
     main()
 
